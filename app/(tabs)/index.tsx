@@ -1,15 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import React, { useEffect, useState } from 'react';
 import {
-  View,
+  Alert,
+  Button,
+  FlatList,
+  StyleSheet,
+  Switch,
   Text,
   TextInput,
-  Button,
-  StyleSheet,
-  Alert,
-  FlatList,
-  Switch,
+  View
 } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useTheme } from '../context/ThemeContext';
 
 interface Alarm {
   hour: string;
@@ -23,6 +24,8 @@ export default function HomeScreen() {
   const [onlyWeekdays, setOnlyWeekdays] = useState(false);
   const [alarms, setAlarms] = useState<Alarm[]>([]);
 
+  const { themeColors } = useTheme();
+
   useEffect(() => {
     loadAlarms();
   }, []);
@@ -33,7 +36,7 @@ export default function HomeScreen() {
       if (stored) {
         setAlarms(JSON.parse(stored));
       }
-    } catch (e) {
+    } catch {
       Alert.alert('Erro', 'Falha ao carregar alarmes.');
     }
   };
@@ -71,14 +74,8 @@ export default function HomeScreen() {
       const month = date.getMonth() + 1;
       const dayOfMonth = date.getDate();
       const feriadosFixos = [
-        '1-1',   // Ano novo
-        '21-4',  // Tiradentes
-        '1-5',   // Dia do trabalho
-        '7-9',   // Independência
-        '12-10', // N. Sra Aparecida
-        '2-11',  // Finados
-        '15-11', // Proclamação da República
-        '25-12', // Natal
+        '1-1', '21-4', '1-5', '7-9',
+        '12-10', '2-11', '15-11', '25-12',
       ];
 
       if (feriadosFixos.includes(`${dayOfMonth}-${month}`)) {
@@ -101,29 +98,31 @@ export default function HomeScreen() {
       setHour('');
       setMinute('');
       Alert.alert('Sucesso', `Alarme salvo para ${newAlarm.hour}:${newAlarm.minute}`);
-    } catch (e) {
+    } catch {
       Alert.alert('Erro', 'Não foi possível salvar o alarme.');
     }
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Cadastrar Alarme</Text>
+    <View style={[styles.container, { backgroundColor: themeColors.background }]}>
+      <Text style={[styles.title, { color: themeColors.text }]}>Cadastrar Alarme</Text>
 
       <View style={styles.inputRow}>
         <TextInput
-          style={styles.input}
+          style={[styles.input, { color: themeColors.text, borderColor: themeColors.border }]}
           keyboardType="numeric"
           placeholder="Hora"
+          placeholderTextColor={themeColors.placeholder}
           value={hour}
           onChangeText={setHour}
           maxLength={2}
         />
-        <Text style={{ fontSize: 24 }}>:</Text>
+        <Text style={[{ fontSize: 24, color: themeColors.text }]}>:</Text>
         <TextInput
-          style={styles.input}
+          style={[styles.input, { color: themeColors.text, borderColor: themeColors.border }]}
           keyboardType="numeric"
           placeholder="Minuto"
+          placeholderTextColor={themeColors.placeholder}
           value={minute}
           onChangeText={setMinute}
           maxLength={2}
@@ -131,18 +130,18 @@ export default function HomeScreen() {
       </View>
 
       <View style={styles.switchContainer}>
-        <Text>Apenas dias úteis</Text>
+        <Text style={{ color: themeColors.text }}>Apenas dias úteis</Text>
         <Switch value={onlyWeekdays} onValueChange={setOnlyWeekdays} />
       </View>
 
       <Button title="Salvar Alarme" onPress={handleAddAlarm} />
 
-      <Text style={styles.subtitle}>Alarmes salvos:</Text>
+      <Text style={[styles.subtitle, { color: themeColors.text }]}>Alarmes salvos:</Text>
       <FlatList
         data={alarms}
         keyExtractor={(_, index) => index.toString()}
         renderItem={({ item }) => (
-          <Text style={styles.alarmItem}>
+          <Text style={[styles.alarmItem, { color: themeColors.text }]}>
             {item.hour}:{item.minute} {item.onlyWeekdays ? '(Dias úteis)' : ''}
           </Text>
         )}
@@ -156,7 +155,6 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 16,
     paddingTop: 48,
-    backgroundColor: '#fff',
   },
   title: {
     fontSize: 22,
@@ -170,7 +168,6 @@ const styles = StyleSheet.create({
   },
   input: {
     borderWidth: 1,
-    borderColor: '#ccc',
     padding: 8,
     width: 60,
     textAlign: 'center',
